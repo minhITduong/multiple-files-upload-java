@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,14 +27,20 @@ public class FilesController {
     FilesStorageService storageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("files") MultipartFile[] files) {
         String message = "";
         try {
-            storageService.save(file);
-            message = "Uploaded the file successfully: " + file.getOriginalFilename();
+            List<String> fileNames = new ArrayList<>();
+
+            Arrays.asList(files).stream().forEach(file -> {
+                storageService.save(file);
+                fileNames.add(file.getOriginalFilename());
+            });
+
+            message = "Uploaded the file successfully: " + fileNames;
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
         } catch (Exception e) {
-            message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+            message = " Fail to upload files!";
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
         }
     }
